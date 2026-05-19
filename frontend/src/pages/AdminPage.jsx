@@ -124,7 +124,7 @@ function AttendeeGroup({ name, txs }) {
   );
 }
 
-export default function AdminPage() {
+export default function AdminPage({ onHome }) {
   const { login, logout, role } = useAuth();
   const [pin, setPin]         = useState('');
   const [loading, setLoading] = useState(false);
@@ -314,9 +314,29 @@ export default function AdminPage() {
   const creditToCash = overview?.credit_to_cash || 1;
 
   // ── LOGIN ─────────────────────────────────────────────────────────
+  // if (role !== 'admin') {
+  //   return (
+  //     <div className="fade-in">
+  //       <div className="hero"><h1>Admin</h1><p>Organizer dashboard</p></div>
+  //       <div className="card">
+  //         <div className="card-title">Admin PIN</div>
+  //         <div className="form-row">
+  //           <label><i className="ti ti-lock" style={{ marginRight:'4px' }} />PIN</label>
+  //           <input type="password" placeholder="Enter PIN" value={pin}
+  //             onChange={e => setPin(e.target.value)}
+  //             onKeyDown={e => e.key === 'Enter' && handleLogin()} autoFocus />
+  //         </div>
+  //         <button className="btn btn-primary mt" disabled={loading} onClick={handleLogin}>
+  //           {loading ? <><i className="ti ti-loader" style={{marginRight:'6px'}} />Checking…</> : <><i className="ti ti-login" style={{marginRight:'6px'}} />Login</>}
+  //         </button>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
   if (role !== 'admin') {
     return (
-      <div className="fade-in">
+      <div className="fade-in" style={{ paddingBottom: '80px' }}>
         <div className="hero"><h1>Admin</h1><p>Organizer dashboard</p></div>
         <div className="card">
           <div className="card-title">Admin PIN</div>
@@ -330,6 +350,12 @@ export default function AdminPage() {
             {loading ? <><i className="ti ti-loader" style={{marginRight:'6px'}} />Checking…</> : <><i className="ti ti-login" style={{marginRight:'6px'}} />Login</>}
           </button>
         </div>
+        <nav className="bottom-nav">
+          <button onClick={onHome} style={{ flex: 1 }}>
+            <i className="ti ti-home nav-icon" aria-hidden="true" />
+            <span>Home</span>
+          </button>
+        </nav>
       </div>
     );
   }
@@ -368,7 +394,8 @@ export default function AdminPage() {
             <div className="stat-card"><div className="stat-big" style={{color:'var(--green)'}}>{overview.total_credits_spent}</div><div className="stat-lbl">Credits Spent</div></div>
             <div className="stat-card"><div className="stat-big" style={{color:'var(--red)'}}>LSL {overview.total_credits_spent * creditToCash}</div><div className="stat-lbl">Total Payout</div></div>
           </div>
-<div className="card">
+          
+          <div className="card">
             <div className="card-title">Event Info</div>
             {[
               { icon: 'ti-arrows-exchange', label: 'Exchange Rate',          val: `1 credit = LSL ${creditToCash}`,               color: 'var(--accent)' },
@@ -478,8 +505,8 @@ export default function AdminPage() {
                 onChange={e => setNewAtt(a => ({...a, email:e.target.value}))} />
             </div>
             <div className="form-row">
-              <label><i className="ti ti-coin" style={{marginRight:'4px'}} />Credits <span style={{color:'var(--muted)',fontWeight:400}}>(leave blank for default {overview?.starting_credits || 300})</span></label>
-              <input type="number" placeholder={String(overview?.starting_credits || 300)} min="0" max="100000"
+              <label><i className="ti ti-coin" style={{marginRight:'4px'}} />Credits <span style={{color:'var(--muted)',fontWeight:400}}>(leave blank for default {overview?.starting_credits || 100})</span></label>
+              <input type="number" placeholder={String(overview?.starting_credits || 100)} min="0" max="100000"
                 value={newAtt.credits} onChange={e => setNewAtt(a => ({...a, credits:e.target.value}))}
                 onKeyDown={e => e.key === 'Enter' && addAttendee()} />
             </div>

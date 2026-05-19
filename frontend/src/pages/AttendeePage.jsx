@@ -8,8 +8,7 @@ import api from '../utils/api';
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
-
-export default function AttendeePage() {
+export default function AttendeePage({ onHome }) {
   const { user, setUser, login, role } = useAuth();
   const [email, setEmail]         = useState('');
   const [loading, setLoading]     = useState(false);
@@ -130,6 +129,12 @@ export default function AttendeePage() {
           Don't have access? Please purchase a ticket first.
         </p>
       </div>
+      <nav className="bottom-nav">
+        <button onClick={onHome} style={{ flex: 1 }}>
+          <i className="ti ti-home nav-icon" />
+          <span>Home</span>
+        </button>
+      </nav>
     </div>
   );
 }

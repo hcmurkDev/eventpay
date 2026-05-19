@@ -4,20 +4,20 @@ const SLIDES = [
   {
     bg: 'linear-gradient(135deg, #1a0533 0%, #3d1278 50%, #0a1a3d 100%)',
     icon: 'ti-confetti',
-    title: 'Welcome to EventFest 2026',
-    sub: 'The biggest community event of the year',
+    title: 'Welcome to Farmers Pitso 2026',
+    sub: 'Agriculture and Excellence Awards',
   },
   {
     bg: 'linear-gradient(135deg, #0a1f18 0%, #0d4a35 50%, #0a0a0f 100%)',
     icon: 'ti-building-store',
-    title: '20+ Food & Drink Stalls',
+    title: 'Food & Drink Stalls',
     sub: 'Local vendors, global flavours',
   },
   {
     bg: 'linear-gradient(135deg, #1a0a0f 0%, #4a1020 50%, #0a0a1f 100%)',
     icon: 'ti-wallet',
     title: 'Cashless & Seamless',
-    sub: 'Use your 300 credits at any stall — no cash needed',
+    sub: 'Use your LSL credits at any stall — no cash needed',
   },
 ];
 
@@ -76,10 +76,10 @@ export default function HomePage({ onNavigate }) {
       <div style={{ padding: '24px 20px', flex: 1 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '28px' }}>
           {[
-            { icon: 'ti-calendar', label: 'Date',    val: 'June 14, 2026' },
-            { icon: 'ti-map-pin',  label: 'Venue',   val: 'City Convention Centre' },
-            { icon: 'ti-clock',    label: 'Time',    val: '10 AM – 8 PM' },
-            { icon: 'ti-coin',     label: 'Credits', val: '300 per attendee' },
+            { icon: 'ti-calendar', label: 'Date',    val: 'September 11, 2026' },
+            { icon: 'ti-map-pin',  label: 'Venue',   val: 'Manthabiseng Convention Centre' },
+            { icon: 'ti-clock',    label: 'Time',    val: '08 AM – 06 PM' },
+            { icon: 'ti-coin',     label: 'Credits', val: '100 per attendee' },
           ].map(item => (
             <div key={item.label} style={{
               background: 'var(--card)', border: '1px solid var(--border)',

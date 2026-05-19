@@ -1,10 +1,10 @@
-const STARTING = 300;
+const STARTING = 100;
 const CIRC = 276.46;
 
 export default function CreditRing({ credits }) {
   const pct = Math.max(0, credits / STARTING);
   const offset = CIRC - CIRC * pct;
-  const color = credits > 100 ? 'var(--accent)' : credits > 30 ? 'var(--amber)' : 'var(--red)';
+  const color = credits > 60 ? 'var(--green)' : credits > 30 ? 'var(--amber)' : 'var(--red)';
 
   return (
     <div className="credit-ring">

@@ -48,7 +48,7 @@ function Numpad({ onConfirm, maxCredits }) {
   );
 }
 
-export default function StallPage() {
+export default function StallPage({ onHome }) {
   const { user, setUser, login, role } = useAuth();
   const [stallEmail, setStallEmail] = useState('');
   const [loading, setLoading]     = useState(false);
@@ -122,10 +122,10 @@ export default function StallPage() {
 
   if (role === 'stall' && user) {
     return (
-      <div className="fade-in">
+      <div className="fade-in" style={{ paddingBottom: '80px' }}>
         <div className="hero">
-          <h1>Stall Dashboard</h1>
-          <p>Scan & collect credits</p>
+          <h1>Stall Owner</h1>
+          <p>Sign in to your stall</p>
         </div>
 
         <div className="card" style={{ textAlign: 'center' }}>
@@ -244,6 +244,12 @@ export default function StallPage() {
           Your email must be registered by the event organizer. Contact them if you can't sign in.
         </p>
       </div>
+      <nav className="bottom-nav">
+        <button onClick={onHome} style={{ flex: 1 }}>
+          <i className="ti ti-home nav-icon" aria-hidden="true" />
+          <span>Home</span>
+        </button>
+      </nav>
     </div>
   );
 }

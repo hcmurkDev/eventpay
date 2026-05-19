@@ -53,9 +53,13 @@ function AppInner() {
       <Toast />
       <main style={{ paddingBottom: showNav ? '80px' : 0 }}>
         {tab === 'home'     && <HomePage onNavigate={changeTab} />}
-        {tab === 'attendee' && <AttendeePage />}
+        {/* {tab === 'attendee' && <AttendeePage />}
         {tab === 'stall'    && <StallPage />}
-        {tab === 'admin'    && <AdminPage />}
+        {tab === 'admin'    && <AdminPage />} */}
+
+        {tab === 'attendee' && <AttendeePage onHome={() => changeTab('home')} />}
+        {tab === 'stall'    && <StallPage    onHome={() => changeTab('home')} />}
+        {tab === 'admin'    && <AdminPage    onHome={() => changeTab('home')} />}
       </main>
 
       {showNav && (

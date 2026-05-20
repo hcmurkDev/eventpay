@@ -38,9 +38,15 @@ function Numpad({ onConfirm, maxCredits }) {
       <div style={{ fontSize: '12px', color: 'var(--muted)', textAlign: 'center', marginBottom: '8px' }}>credits to deduct</div>
       <div className="numpad">
         {KEYS.map(k => (
-          <button key={k} className="numpad-btn"
+          <button
+            key={k}
+            className={`numpad-btn ${k === '✓' ? 'numpad-confirm' : k === '⌫' ? 'numpad-cancel' : ''}`}
             onPointerDown={e => { e.preventDefault(); press(k); }}>
-            {k === '⌫' ? <i className="ti ti-backspace" style={{ fontSize: '20px' }} /> : k}
+            {k === '⌫'
+              ? <i className="ti ti-backspace" style={{ fontSize: '20px' }} />
+              : k === '✓'
+              ? <i className="ti ti-check" style={{ fontSize: '20px' }} />
+              : k}
           </button>
         ))}
       </div>
@@ -51,11 +57,11 @@ function Numpad({ onConfirm, maxCredits }) {
 export default function StallPage({ onHome }) {
   const { user, setUser, login, role } = useAuth();
   const [stallEmail, setStallEmail] = useState('');
-  const [loading, setLoading]     = useState(false);
+  const [loading, setLoading]       = useState(false);
   const [transactions, setTransactions] = useState([]);
-  const [scanning, setScanning]   = useState(false);
-  const [attendee, setAttendee]   = useState(null);
-  const [charging, setCharging]   = useState(false);
+  const [scanning, setScanning]     = useState(false);
+  const [attendee, setAttendee]     = useState(null);
+  const [charging, setCharging]     = useState(false);
 
   useEffect(() => {
     if (role === 'stall' && user) fetchTx();

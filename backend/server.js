@@ -49,7 +49,9 @@ app.use((req, _res, next) => {
 });
 
 // Routes
-app.use('/api/attendees', require('./routes/attendees'));
+// app.use('/api/attendees', require('./routes/attendees'));
+const { router: attendeesRouter } = require('./routes/attendees');
+app.use('/api/attendees', attendeesRouter);
 app.use('/api/stalls',    require('./routes/stalls'));
 app.use('/api/admin',     require('./routes/admin'));
 

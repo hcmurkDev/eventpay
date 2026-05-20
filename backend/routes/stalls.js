@@ -3,9 +3,11 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { pool } = require('../db');
 const auth = require('../middleware/auth');
+const { connections } = require('./attendees'); // import SSE connections
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UUID_RE  = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 
 // POST /api/stalls/login  — email only, stall must be created by admin
 router.post('/login', async (req, res) => {
@@ -122,7 +124,16 @@ router.post('/charge', auth(['stall']), async (req, res) => {
       [attendee_id, req.user.id, parsedAmount]
     );
     await client.query('COMMIT');
-    res.json({ transaction: txResult.rows[0], attendee_name: attendee.name, credits_remaining: attendee.credits - parsedAmount });
+
+    // Push SSE update to attendee if they are connected
+    const newCredits = attendee.credits - parsedAmount;
+    const sseConn = connections.get(attendee_id);
+    if (sseConn) {
+      sseConn.write(`data: ${JSON.stringify({ credits: newCredits })}\n\n`);
+      console.log(`SSE pushed to attendee ${attendee_id}: credits = ${newCredits}`);
+    }
+
+    res.json({ transaction: txResult.rows[0], attendee_name: attendee.name, credits_remaining: newCredits });
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('Charge error:', err);
@@ -133,3 +144,49 @@ router.post('/charge', auth(['stall']), async (req, res) => {
 });
 
 module.exports = router;
+
+// router.post('/charge', auth(['stall']), async (req, res) => {
+//   const { attendee_id, amount } = req.body;
+//   const parsedAmount = parseInt(amount);
+
+//   if (!attendee_id || !parsedAmount || parsedAmount <= 0 || parsedAmount > 10000) {
+//     return res.status(400).json({ error: 'Valid attendee_id and positive amount required' });
+//   }
+//   if (!UUID_RE.test(attendee_id)) {
+//     return res.status(400).json({ error: 'Invalid attendee ID' });
+//   }
+
+//   const client = await pool.connect();
+//   try {
+//     await client.query('BEGIN');
+//     const attResult = await client.query(
+//       'SELECT id, name, credits FROM attendees WHERE id = $1 FOR UPDATE',
+//       [attendee_id]
+//     );
+//     if (!attResult.rows.length) {
+//       await client.query('ROLLBACK');
+//       return res.status(404).json({ error: 'Attendee not found' });
+//     }
+//     const attendee = attResult.rows[0];
+//     if (attendee.credits < parsedAmount) {
+//       await client.query('ROLLBACK');
+//       return res.status(400).json({ error: `Insufficient credits. Attendee has ${attendee.credits} credits.` });
+//     }
+//     await client.query('UPDATE attendees SET credits = credits - $1 WHERE id = $2', [parsedAmount, attendee_id]);
+//     await client.query('UPDATE stalls SET earned = earned + $1 WHERE id = $2',      [parsedAmount, req.user.id]);
+//     const txResult = await client.query(
+//       'INSERT INTO transactions (attendee_id, stall_id, amount) VALUES ($1, $2, $3) RETURNING id, amount, created_at',
+//       [attendee_id, req.user.id, parsedAmount]
+//     );
+//     await client.query('COMMIT');
+//     res.json({ transaction: txResult.rows[0], attendee_name: attendee.name, credits_remaining: attendee.credits - parsedAmount });
+//   } catch (err) {
+//     await client.query('ROLLBACK');
+//     console.error('Charge error:', err);
+//     res.status(500).json({ error: 'Server error' });
+//   } finally {
+//     client.release();
+//   }
+// });
+
+// module.exports = router;

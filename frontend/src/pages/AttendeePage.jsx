@@ -1,4 +1,6 @@
-// import { useState, useEffect } from 'react';
+
+
+// import { useState, useEffect, useRef } from 'react';
 // import { QRCodeSVG } from 'qrcode.react';
 // import { useAuth } from '../context/AuthContext';
 // import CreditRing from '../components/CreditRing';
@@ -8,15 +10,57 @@
 // function formatTime(iso) {
 //   return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 // }
+
 // export default function AttendeePage({ onHome }) {
 //   const { user, setUser, login, role } = useAuth();
-//   const [email, setEmail]         = useState('');
-//   const [loading, setLoading]     = useState(false);
+//   const [email, setEmail]             = useState('');
+//   const [loading, setLoading]         = useState(false);
 //   const [transactions, setTransactions] = useState([]);
+//   const sseRef = useRef(null); // hold the EventSource reference
 
 //   useEffect(() => {
-//     if (role === 'attendee' && user) fetchTx();
-//   }, [role, user]);
+//     if (role === 'attendee' && user) {
+//       fetchTx();
+//       connectSSE();
+//     }
+
+//     // Cleanup SSE when component unmounts or user logs out
+//     return () => {
+//       if (sseRef.current) {
+//         sseRef.current.close();
+//         sseRef.current = null;
+//       }
+//     };
+//   }, [role, user?.id]);
+
+//   const connectSSE = () => {
+//     // Don't open a second connection if one already exists
+//     if (sseRef.current) return;
+
+//     const token = localStorage.getItem('ep_token');
+//     const url = `${import.meta.env.VITE_API_URL}/attendees/events?token=${token}`;
+
+//     const es = new EventSource(url);
+
+//     es.onopen = () => {
+//       console.log('SSE connected');
+//     };
+
+//     es.onmessage = (e) => {
+//       const { credits } = JSON.parse(e.data);
+//       // Update credits in state instantly without a full refresh
+//       setUser(prev => ({ ...prev, credits }));
+//       // Also fetch latest transactions so the list updates too
+//       fetchTx();
+//       toast.success('Credits updated!');
+//     };
+
+//     es.onerror = () => {
+//       console.log('SSE error — will retry automatically');
+//     };
+
+//     sseRef.current = es;
+//   };
 
 //   const fetchTx = async () => {
 //     try {
@@ -139,6 +183,7 @@
 //   );
 // }
 
+
 import { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '../context/AuthContext';
@@ -152,7 +197,7 @@ function formatTime(iso) {
 
 export default function AttendeePage({ onHome }) {
   const { user, setUser, login, role } = useAuth();
-  const [email, setEmail]             = useState('');
+  const [ticketCode, setTicketCode]   = useState('');
   const [loading, setLoading]         = useState(false);
   const [transactions, setTransactions] = useState([]);
   const sseRef = useRef(null); // hold the EventSource reference
@@ -217,10 +262,10 @@ export default function AttendeePage({ onHome }) {
   };
 
   const handleLogin = async () => {
-    if (!email.trim()) return toast.error('Enter your email address');
+    if (!ticketCode.trim()) return toast.error('Enter your ticket code');
     setLoading(true);
     try {
-      const { data } = await api.post('/attendees/login', { email });
+      const { data } = await api.post('/attendees/login', { ticket_code: ticketCode });
       login(data.token, 'attendee', data.attendee);
       toast.success('Welcome, ' + data.attendee.name + '!');
     } catch (err) {
@@ -284,19 +329,19 @@ export default function AttendeePage({ onHome }) {
     <div className="fade-in">
       <div className="hero">
         <h1>Attendee Sign In</h1>
-        <p>Enter the email you registered with</p>
+        <p>Enter the ticket code from your ticket</p>
       </div>
 
       <div className="card">
         <div className="form-row">
           <label>
-            <i className="ti ti-mail" style={{ marginRight: '4px' }} />Email Address
+            <i className="ti ti-ticket" style={{ marginRight: '4px' }} />Ticket Code
           </label>
           <input
-            type="email"
-            placeholder="you@email.com"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
+            type="text"
+            placeholder="e.g. ABC-1234"
+            value={ticketCode}
+            onChange={e => setTicketCode(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleLogin()}
             autoFocus
           />

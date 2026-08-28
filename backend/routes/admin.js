@@ -70,37 +70,63 @@ router.get('/stalls', auth(['admin']), async (req, res) => {
   }
 });
 
-// GET /api/admin/attendees?page=1&limit=50&search=email
+
+// GET /api/admin/attendees?page=1&limit=50&search=ticket_code
 router.get('/attendees', auth(['admin']), async (req, res) => {
-  const page   = Math.max(1, parseInt(req.query.page)  || 1);
-  const limit  = Math.min(100, parseInt(req.query.limit) || 50);
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(100, parseInt(req.query.limit) || 50);
   const offset = (page - 1) * limit;
-  const search = req.query.search ? `%${req.query.search.toLowerCase()}%` : null;
+
+  const search = req.query.search
+    ? `%${req.query.search.toLowerCase().trim()}%`
+    : null;
 
   try {
     const result = search
       ? await pool.query(
-          `SELECT a.id, a.name, a.email, a.credits, a.created_at, COUNT(t.id)::int AS tx_count
+          `SELECT
+              a.id,
+              a.name,
+              a.ticket_code,
+              a.credits,
+              a.created_at,
+              COUNT(t.id)::int AS tx_count
            FROM attendees a
-           LEFT JOIN transactions t ON a.id = t.attendee_id
-           WHERE LOWER(a.email) LIKE $1 OR LOWER(a.name) LIKE $1
+           LEFT JOIN transactions t
+             ON a.id = t.attendee_id
+           WHERE
+             LOWER(a.ticket_code) LIKE $1
+             OR LOWER(a.name) LIKE $1
            GROUP BY a.id
            ORDER BY a.created_at DESC
            LIMIT $2 OFFSET $3`,
           [search, limit, offset]
         )
       : await pool.query(
-          `SELECT a.id, a.name, a.email, a.credits, a.created_at, COUNT(t.id)::int AS tx_count
+          `SELECT
+              a.id,
+              a.name,
+              a.ticket_code,
+              a.credits,
+              a.created_at,
+              COUNT(t.id)::int AS tx_count
            FROM attendees a
-           LEFT JOIN transactions t ON a.id = t.attendee_id
+           LEFT JOIN transactions t
+             ON a.id = t.attendee_id
            GROUP BY a.id
            ORDER BY a.created_at DESC
            LIMIT $1 OFFSET $2`,
           [limit, offset]
         );
+
     res.json(result.rows);
+
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('Get attendees error:', err);
+
+    res.status(500).json({
+      error: 'Server error'
+    });
   }
 });
 
@@ -144,32 +170,113 @@ router.delete('/stalls/:id', auth(['admin']), async (req, res) => {
   }
 });
 
-// POST /api/admin/attendees  — add single attendee with custom credits
+// POST /api/admin/attendees
+// Admin creates a single attendee using name + ticket code
 router.post('/attendees', auth(['admin']), async (req, res) => {
-  const { name, email, credits } = req.body;
-  if (!name || !email) return res.status(400).json({ error: 'Name and email required' });
-  const cleanEmail = email.toLowerCase().trim();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-    return res.status(400).json({ error: 'Invalid email format' });
+  const { name, ticket_code, credits } = req.body;
+
+  // Validate name
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({
+      error: 'Attendee name is required'
+    });
   }
-  const defaultCredits = parseInt(process.env.STARTING_CREDITS) || 300;
-  const parsedCredits = credits !== undefined && credits !== null && credits !== ''
-    ? parseInt(credits) : defaultCredits;
-  if (isNaN(parsedCredits) || parsedCredits < 0 || parsedCredits > 100000) {
-    return res.status(400).json({ error: 'Credits must be a number between 0 and 100000' });
+
+  // Validate ticket code
+  if (!ticket_code || typeof ticket_code !== 'string' || !ticket_code.trim()) {
+    return res.status(400).json({
+      error: 'Ticket code is required'
+    });
   }
+
+  // Standardize the ticket code
+  const cleanTicketCode = ticket_code
+    .trim()
+    .toUpperCase();
+
+  // Basic safety limits
+  if (cleanTicketCode.length < 4 || cleanTicketCode.length > 100) {
+    return res.status(400).json({
+      error: 'Ticket code must be between 4 and 100 characters'
+    });
+  }
+
+  // Optional format validation
+  // Allows letters, numbers and hyphens
+  if (!/^[A-Z0-9-]+$/.test(cleanTicketCode)) {
+    return res.status(400).json({
+      error: 'Ticket code can only contain letters, numbers, and hyphens'
+    });
+  }
+
+  // Default credits from environment
+  const defaultCredits =
+    parseInt(process.env.STARTING_CREDITS) || 300;
+
+  // Allow admin to override credits
+  const parsedCredits =
+    credits !== undefined &&
+    credits !== null &&
+    credits !== ''
+      ? parseInt(credits)
+      : defaultCredits;
+
+  if (
+    isNaN(parsedCredits) ||
+    parsedCredits < 0 ||
+    parsedCredits > 100000
+  ) {
+    return res.status(400).json({
+      error: 'Credits must be a number between 0 and 100000'
+    });
+  }
+
   try {
-    const exists = await pool.query('SELECT id FROM attendees WHERE email = $1', [cleanEmail]);
-    if (exists.rows.length) return res.status(409).json({ error: 'Email already registered' });
-    const result = await pool.query(
-      `INSERT INTO attendees (name, email, credits) VALUES ($1, $2, $3)
-       RETURNING id, name, email, credits`,
-      [name.trim(), cleanEmail, parsedCredits]
+
+    // Check whether ticket code already exists
+    const exists = await pool.query(
+      `SELECT id
+       FROM attendees
+       WHERE ticket_code = $1`,
+      [cleanTicketCode]
     );
+
+    if (exists.rows.length) {
+      return res.status(409).json({
+        error: 'This ticket code is already registered'
+      });
+    }
+
+    // Create attendee
+    const result = await pool.query(
+      `INSERT INTO attendees (
+        name,
+        ticket_code,
+        credits
+      )
+      VALUES ($1, $2, $3)
+      RETURNING
+        id,
+        name,
+        ticket_code,
+        credits,
+        created_at`,
+      [
+        name.trim(),
+        cleanTicketCode,
+        parsedCredits
+      ]
+    );
+
     res.status(201).json(result.rows[0]);
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+
+    console.error('Create attendee error:', err);
+
+    res.status(500).json({
+      error: 'Server error'
+    });
   }
 });
 
@@ -183,7 +290,7 @@ router.delete('/attendees/:id', auth(['admin']), async (req, res) => {
   }
 });
 
-// POST /api/admin/attendees/import  — bulk import from Excel/CSV using exceljs
+// POST /api/admin/attendees/import — bulk import from Excel/CSV using exceljs
 router.post('/attendees/import', auth(['admin']), upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
@@ -192,6 +299,7 @@ router.post('/attendees/import', auth(['admin']), upload.single('file'), async (
     const stream = Readable.from(req.file.buffer);
     const ext = req.file.originalname.toLowerCase();
 
+    // Read CSV or Excel file
     if (ext.endsWith('.csv')) {
       await workbook.csv.read(stream);
     } else {
@@ -199,72 +307,182 @@ router.post('/attendees/import', auth(['admin']), upload.single('file'), async (
     }
 
     const worksheet = workbook.worksheets[0];
-    if (!worksheet) return res.status(400).json({ error: 'File has no worksheets' });
 
-    // Read header row — supports labelled (name/email/credits) or positional (col A/B/C)
+    if (!worksheet) {
+      return res.status(400).json({ error: 'File has no worksheets' });
+    }
+
+    // Read header row
+    // Supports:
+    // Name | Ticket Code | Credits
+    // or positional columns:
+    // A = Name, B = Ticket Code, C = Credits
     const headerRow = worksheet.getRow(1);
-    let nameCol = -1, emailCol = -1, creditsCol = -1;
+
+    let nameCol = -1;
+    let ticketCodeCol = -1;
+    let creditsCol = -1;
     let hasHeaders = false;
+
     headerRow.eachCell((cell, colNum) => {
-      const val = String(cell.value || '').toLowerCase().trim();
-      if (val === 'name')    { nameCol    = colNum; hasHeaders = true; }
-      if (val === 'email')   { emailCol   = colNum; hasHeaders = true; }
-      if (val === 'credits') { creditsCol = colNum; hasHeaders = true; }
+      const val = String(cell.value || '')
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '_');
+
+      if (val === 'name') {
+        nameCol = colNum;
+        hasHeaders = true;
+      }
+
+      if (
+        val === 'ticket_code' ||
+        val === 'ticketcode' ||
+        val === 'ticket'
+      ) {
+        ticketCodeCol = colNum;
+        hasHeaders = true;
+      }
+
+      if (val === 'credits') {
+        creditsCol = colNum;
+        hasHeaders = true;
+      }
     });
-    // Fallback: no headers found — assume col A=name, col B=email, col C=credits
-    if (!hasHeaders) { nameCol = 1; emailCol = 2; creditsCol = 3; }
-    if (nameCol === -1 || emailCol === -1) {
-      return res.status(400).json({ error: 'Could not find name/email columns. Add headers or use columns A, B, C.' });
-    } else if (nameCol === -1 || emailCol === -1) {
-      return res.status(400).json({ error: 'File must have name and email columns' });
+
+    // No headers found
+    // Assume:
+    // A = Name
+    // B = Ticket Code
+    // C = Credits
+    if (!hasHeaders) {
+      nameCol = 1;
+      ticketCodeCol = 2;
+      creditsCol = 3;
+    }
+
+    // Validate required columns
+    if (nameCol === -1 || ticketCodeCol === -1) {
+      return res.status(400).json({
+        error: 'Could not find name and ticket code columns. Use Name and Ticket Code, or columns A and B.'
+      });
     }
 
     const defaultCredits = parseInt(process.env.STARTING_CREDITS) || 300;
-    let imported = 0, skipped = 0, errors = [];
-    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+    let imported = 0;
+    let skipped = 0;
+    const errors = [];
+
+    // Track duplicates inside the uploaded file
+    const seenTicketCodes = new Set();
+
+    // Start at row 2 because row 1 is normally the header
     for (let r = 2; r <= worksheet.rowCount; r++) {
-      const row   = worksheet.getRow(r);
-      const name  = String(row.getCell(nameCol).value  || '').trim();
-      const email = String(row.getCell(emailCol).value || '').toLowerCase().trim();
-      const rawCredits = creditsCol > 0 ? row.getCell(creditsCol).value : null;
-      const credits = rawCredits !== null && rawCredits !== '' ? parseInt(rawCredits) : defaultCredits;
+      const row = worksheet.getRow(r);
 
-      if (!name || !email) { skipped++; continue; }
-      if (!EMAIL_RE.test(email)) {
-        errors.push(`Row ${r}: invalid email "${email}"`);
+      const name = String(row.getCell(nameCol).value || '').trim();
+
+      const ticketCode = String(
+        row.getCell(ticketCodeCol).value || ''
+      )
+        .trim()
+        .toUpperCase();
+
+      const rawCredits = creditsCol > 0
+        ? row.getCell(creditsCol).value
+        : null;
+
+      const credits = rawCredits !== null && rawCredits !== ''
+        ? parseInt(rawCredits)
+        : defaultCredits;
+
+      // Skip completely empty rows
+      if (!name && !ticketCode) {
+        continue;
+      }
+
+      // Name and ticket code are required
+      if (!name || !ticketCode) {
+        errors.push(`Row ${r}: name and ticket code are required`);
         skipped++;
         continue;
       }
+
+      // Validate ticket code length
+      if (ticketCode.length < 4 || ticketCode.length > 100) {
+        errors.push(`Row ${r}: invalid ticket code "${ticketCode}"`);
+        skipped++;
+        continue;
+      }
+
+      // Only allow letters, numbers and hyphens
+      if (!/^[A-Z0-9-]+$/.test(ticketCode)) {
+        errors.push(`Row ${r}: ticket code "${ticketCode}" contains invalid characters`);
+        skipped++;
+        continue;
+      }
+
+      // Check duplicate inside Excel/CSV file
+      if (seenTicketCodes.has(ticketCode)) {
+        errors.push(`Row ${r}: duplicate ticket code "${ticketCode}" in this file`);
+        skipped++;
+        continue;
+      }
+
+      seenTicketCodes.add(ticketCode);
+
+      // Validate credits
       if (isNaN(credits) || credits < 0 || credits > 100000) {
         errors.push(`Row ${r}: invalid credits value "${rawCredits}"`);
         skipped++;
         continue;
       }
-      const safeName  = name.replace(/<[^>]*>/g, '').slice(0, 255);
-      const safeEmail = email.slice(0, 255);
+
+      // Clean values
+      const safeName = name
+        .replace(/<[^>]*>/g, '')
+        .slice(0, 255);
+
+      const safeTicketCode = ticketCode.slice(0, 100);
+
       try {
-        await pool.query(
-          `INSERT INTO attendees (name, email, credits)
+        const result = await pool.query(
+          `INSERT INTO attendees (name, ticket_code, credits)
            VALUES ($1, $2, $3)
-           ON CONFLICT (email) DO NOTHING`,
-          [safeName, safeEmail, credits]
+           ON CONFLICT (ticket_code) DO NOTHING
+           RETURNING id`,
+          [safeName, safeTicketCode, credits]
         );
-        imported++;
-      } catch {
+
+        // Only count if PostgreSQL actually inserted the attendee
+        if (result.rows.length > 0) {
+          imported++;
+        } else {
+          skipped++;
+          errors.push(`Row ${r}: ticket code "${ticketCode}" already exists`);
+        }
+
+      } catch (err) {
+        console.error(`Import error on row ${r}:`, err);
         skipped++;
+        errors.push(`Row ${r}: failed to import`);
       }
     }
 
     res.json({
-      message: `Import complete`,
+      message: 'Import complete',
       imported,
       skipped,
-      errors: errors.slice(0, 20), // cap error list
+      errors: errors.slice(0, 20)
     });
+
   } catch (err) {
     console.error('Import error:', err);
-    res.status(500).json({ error: 'Failed to parse file. Make sure it has name and email columns.' });
+
+    res.status(500).json({
+      error: 'Failed to parse file. Make sure it has name and ticket code columns.'
+    });
   }
 });
 

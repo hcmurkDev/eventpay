@@ -906,31 +906,228 @@ export default function AdminPage({ onHome }) {
   //   );
   // }
 
-  if (role !== 'admin') {
-    return (
-      <div className="fade-in" style={{ paddingBottom: '80px' }}>
-        <div className="hero"><h1>Admin</h1><p>Organizer dashboard</p></div>
-        <div className="card">
-          <div className="card-title">Admin PIN</div>
-          <div className="form-row">
-            <label><i className="ti ti-lock" style={{ marginRight:'4px' }} />PIN</label>
-            <input type="password" placeholder="Enter PIN" value={pin}
-              onChange={e => setPin(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleLogin()} autoFocus />
-          </div>
-          <button className="btn btn-primary mt" disabled={loading} onClick={handleLogin}>
-            {loading ? <><i className="ti ti-loader" style={{marginRight:'6px'}} />Checking…</> : <><i className="ti ti-login" style={{marginRight:'6px'}} />Login</>}
-          </button>
+if (role !== 'admin') {
+  return (
+    <div className="attendee-page fade-in">
+
+      {/* HEADER */}
+      <header className="attendee-header">
+
+        <button
+          className="attendee-brand"
+          onClick={onHome}
+          type="button"
+        >
+          <span className="attendee-brand-mark">
+            <i className="ti ti-seedling" />
+          </span>
+
+          <span>
+            <strong>Farmers Pitso</strong>
+            <small>EVENTPAY 2026</small>
+          </span>
+        </button>
+
+        <div className="attendee-header-event">
+          <span>SEPTEMBER 12, 2026</span>
+          <strong>Manthabiseng Convention Centre</strong>
         </div>
-        <nav className="bottom-nav">
-          <button onClick={onHome} style={{ flex: 1 }}>
-            <i className="ti ti-home nav-icon" aria-hidden="true" />
-            <span>Home</span>
-          </button>
-        </nav>
-      </div>
-    );
-  }
+
+      </header>
+
+      {/* BACK BUTTON — SAME AS ATTENDEE */}
+      <button
+        className="attendee-back-btn"
+        onClick={onHome}
+        type="button"
+      >
+        <i className="ti ti-arrow-left" />
+        <span>Back to Farmers Pitso</span>
+      </button>
+
+      {/* MAIN */}
+      <main className="attendee-login">
+
+        {/* LEFT / LOGIN */}
+        <section className="attendee-login-panel">
+
+          <div className="attendee-login-heading">
+
+            <span className="attendee-eyebrow">
+              <i className="ti ti-shield-lock" />
+              ADMIN ACCESS
+            </span>
+
+            <h1>
+              Welcome to<br />
+              <em>EventPay Admin.</em>
+            </h1>
+
+            <p>
+              Enter the administrator PIN to access the
+              Farmers Pitso event dashboard.
+            </p>
+
+          </div>
+
+          <form
+            className="attendee-login-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
+          >
+
+            <div className="attendee-field">
+
+              <label htmlFor="admin-pin">
+                <span>
+                  <i className="ti ti-lock" />
+                  Admin PIN
+                </span>
+
+                <small>
+                  Organizer access only
+                </small>
+              </label>
+
+              <div className="attendee-input-wrap">
+
+                <i className="ti ti-lock attendee-input-icon" />
+
+                <input
+                  id="admin-pin"
+                  type="password"
+                  placeholder="Enter admin PIN"
+                  value={pin}
+                  onChange={e => setPin(e.target.value)}
+                  autoFocus
+                  autoComplete="off"
+                />
+
+              </div>
+
+            </div>
+
+            <button
+              className="attendee-signin-btn"
+              type="submit"
+              disabled={loading}
+            >
+
+              {loading ? (
+                <>
+                  <i className="ti ti-loader attendee-spin" />
+                  Checking PIN...
+                </>
+              ) : (
+                <>
+                  Open admin dashboard
+                  <i className="ti ti-arrow-right" />
+                </>
+              )}
+
+            </button>
+
+          </form>
+
+          <div className="attendee-login-help">
+
+            <i className="ti ti-info-circle" />
+
+            <p>
+              Administrator access is restricted to
+              <span> event organizers.</span>
+            </p>
+
+          </div>
+
+        </section>
+
+
+        {/* RIGHT / EVENT CARD */}
+        <aside className="attendee-event-panel">
+
+          <div className="attendee-event-glow" />
+
+          <div className="attendee-event-content">
+
+            <span className="attendee-event-label">
+              EVENT MANAGEMENT
+            </span>
+
+            <div className="attendee-wallet-icon">
+              <i className="ti ti-dashboard" />
+            </div>
+
+            <h2>
+              Everything happening,
+              <br />
+              <span>in one place.</span>
+            </h2>
+
+            <p>
+              Manage attendees, stalls, credits and
+              event transactions from your EventPay dashboard.
+            </p>
+
+            <div className="attendee-benefits">
+
+              <div>
+                <span className="benefit-icon">
+                  <i className="ti ti-users" />
+                </span>
+
+                <span>
+                  <strong>Manage attendees</strong>
+                  <small>Add and import ticket holders</small>
+                </span>
+              </div>
+
+              <div>
+                <span className="benefit-icon">
+                  <i className="ti ti-building-store" />
+                </span>
+
+                <span>
+                  <strong>Manage stalls</strong>
+                  <small>Track stalls and payouts</small>
+                </span>
+              </div>
+
+              <div>
+                <span className="benefit-icon">
+                  <i className="ti ti-chart-bar" />
+                </span>
+
+                <span>
+                  <strong>Monitor the event</strong>
+                  <small>View live credits and transactions</small>
+                </span>
+              </div>
+
+            </div>
+
+          </div>
+
+          <div className="attendee-event-footer">
+            <i className="ti ti-map-pin" />
+            Manthabiseng Convention Centre
+          </div>
+
+        </aside>
+
+      </main>
+
+      <footer className="attendee-footer">
+        <span>
+          EventPay • Farmers Pitso 2026
+        </span>
+      </footer>
+
+    </div>
+  );
+}
 
   const TABS = ['overview', 'stalls', 'attendees'];
 

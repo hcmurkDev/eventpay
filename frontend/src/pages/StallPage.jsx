@@ -226,36 +226,232 @@ export default function StallPage({ onHome }) {
     );
   }
 
-  return (
-    <div className="fade-in">
-      <div className="hero">
-        <h1>Stall Owner</h1>
-        <p>Sign in to your stall</p>
+return (
+  <div className="attendee-page fade-in">
+
+    {/* HEADER */}
+    <header className="attendee-header">
+
+      <button
+        className="attendee-brand"
+        onClick={onHome}
+        type="button"
+      >
+        <span className="attendee-brand-mark">
+          <i className="ti ti-seedling" />
+        </span>
+
+        <span>
+          <strong>Farmers Pitso</strong>
+          <small>EVENTPAY 2026</small>
+        </span>
+      </button>
+
+      <div className="attendee-header-event">
+        <span>SEPTEMBER 12, 2026</span>
+        <strong>Manthabiseng Convention Centre</strong>
       </div>
-      <div className="card">
-        <div className="form-row">
-          <label><i className="ti ti-mail" style={{ marginRight: '4px' }} />Email Address</label>
-          <input type="email" placeholder="your@email.com" value={stallEmail}
-            onChange={e => setStallEmail(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleLogin()} autoFocus />
+
+    </header>
+
+
+    {/* BACK BUTTON */}
+    <button
+      className="attendee-back-btn"
+      onClick={onHome}
+      type="button"
+    >
+      <i className="ti ti-arrow-left" />
+      <span>Back to Farmers Pitso</span>
+    </button>
+
+
+    {/* MAIN */}
+    <main className="attendee-login">
+
+      {/* LEFT / LOGIN */}
+      <section className="attendee-login-panel">
+
+        <div className="attendee-login-heading">
+
+          <span className="attendee-eyebrow">
+            <i className="ti ti-building-store" />
+            STALL ACCESS
+          </span>
+
+          <h1>
+            Welcome back to<br />
+            <em>Farmers Pitso.</em>
+          </h1>
+
+          <p>
+            Sign in to your stall account to start accepting
+            cashless payments from attendees.
+          </p>
+
         </div>
-        <button className="btn btn-primary mt" disabled={loading} onClick={handleLogin}>
-          {loading
-            ? <><i className="ti ti-loader" style={{ marginRight: '6px' }} />Please wait…</>
-            : <><i className="ti ti-login" style={{ marginRight: '6px' }} />Open My Stall</>
-          }
-        </button>
-        <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '14px', textAlign: 'center', lineHeight: 1.6 }}>
-          <i className="ti ti-info-circle" style={{ marginRight: '4px' }} />
-          Your email must be registered by the event organizer. Contact them if you can't sign in.
-        </p>
-      </div>
-      <nav className="bottom-nav">
-        <button onClick={onHome} style={{ flex: 1 }}>
-          <i className="ti ti-home nav-icon" aria-hidden="true" />
-          <span>Home</span>
-        </button>
-      </nav>
-    </div>
-  );
+
+
+        <form
+          className="attendee-login-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleLogin();
+          }}
+        >
+
+          <div className="attendee-field">
+
+            <label htmlFor="stall-email">
+              <span>
+                <i className="ti ti-mail" />
+                Email Address
+              </span>
+
+              <small>
+                Email registered by the organizer
+              </small>
+            </label>
+
+            <div className="attendee-input-wrap">
+
+              <i className="ti ti-mail attendee-input-icon" />
+
+              <input
+                id="stall-email"
+                type="email"
+                placeholder="your@email.com"
+                value={stallEmail}
+                onChange={e => setStallEmail(e.target.value)}
+                autoFocus
+                autoComplete="email"
+              />
+
+            </div>
+
+          </div>
+
+
+          <button
+            className="attendee-signin-btn"
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <i className="ti ti-loader attendee-spin" />
+                Checking stall...
+              </>
+            ) : (
+              <>
+                Open my stall
+                <i className="ti ti-arrow-right" />
+              </>
+            )}
+          </button>
+
+        </form>
+
+
+        <div className="attendee-login-help">
+
+          <i className="ti ti-info-circle" />
+
+          <p>
+            Can't access your stall?
+            <span> Contact the event organizer.</span>
+          </p>
+
+        </div>
+
+      </section>
+
+
+      {/* RIGHT / STALL CARD */}
+      <aside className="attendee-event-panel">
+
+        <div className="attendee-event-glow" />
+
+        <div className="attendee-event-content">
+
+          <span className="attendee-event-label">
+            YOUR STALL DASHBOARD
+          </span>
+
+          <div className="attendee-wallet-icon">
+            <i className="ti ti-building-store" />
+          </div>
+
+          <h2>
+            Run your stall,
+            <br />
+            <span>cashless & simple.</span>
+          </h2>
+
+          <p>
+            EventPay makes it easy to accept attendee payments
+            and keep track of everything you earn.
+          </p>
+
+
+          <div className="attendee-benefits">
+
+            <div>
+              <span className="benefit-icon">
+                <i className="ti ti-scan" />
+              </span>
+
+              <span>
+                <strong>Scan attendee QR</strong>
+                <small>Quickly load a customer's wallet</small>
+              </span>
+            </div>
+
+
+            <div>
+              <span className="benefit-icon">
+                <i className="ti ti-coin" />
+              </span>
+
+              <span>
+                <strong>Accept credits</strong>
+                <small>Charge purchases instantly</small>
+              </span>
+            </div>
+
+
+            <div>
+              <span className="benefit-icon">
+                <i className="ti ti-chart-bar" />
+              </span>
+
+              <span>
+                <strong>Track your sales</strong>
+                <small>Monitor transactions and earnings</small>
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div className="attendee-event-footer">
+          <i className="ti ti-map-pin" />
+          Manthabiseng Convention Centre
+        </div>
+
+      </aside>
+
+    </main>
+
+
+    <footer className="attendee-footer">
+      <span>
+        EventPay • Farmers Pitso 2026
+      </span>
+    </footer>
+
+  </div>
+);
 }

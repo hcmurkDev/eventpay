@@ -12,6 +12,12 @@ function AppInner() {
   const { loading, role, logout } = useAuth();
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem('ep_theme') || 'feast';
+
+    document.documentElement.dataset.theme = savedTheme;
+  }, []);
+
+  useEffect(() => {
     if (role && tab === 'home') {
       const dest = role === 'attendee' ? 'attendee' : role === 'stall' ? 'stall' : 'admin';
       changeTab(dest);

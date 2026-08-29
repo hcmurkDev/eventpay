@@ -325,44 +325,237 @@ export default function AttendeePage({ onHome }) {
     );
   }
 
-  return (
-    <div className="fade-in">
-      <div className="hero">
-        <h1>Attendee Sign In</h1>
-        <p>Enter the ticket code from your ticket</p>
+return (
+  <div className="attendee-page fade-in">
+
+    {/* HEADER */}
+    <header className="attendee-header">
+
+      <button
+        className="attendee-brand"
+        onClick={onHome}
+        type="button"
+      >
+        <span className="attendee-brand-mark">
+          <i className="ti ti-seedling" />
+        </span>
+
+        <span>
+          <strong>Farmers Pitso</strong>
+          <small>EVENTPAY 2026</small>
+        </span>
+      </button>
+
+      <div className="attendee-header-event">
+        <span>SEPTEMBER 12, 2026</span>
+        <strong>Manthabiseng Convention Centre</strong>
       </div>
 
-      <div className="card">
-        <div className="form-row">
-          <label>
-            <i className="ti ti-ticket" style={{ marginRight: '4px' }} />Ticket Code
-          </label>
-          <input
-            type="text"
-            placeholder="e.g. ABC-1234"
-            value={ticketCode}
-            onChange={e => setTicketCode(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleLogin()}
-            autoFocus
-          />
+    </header>
+
+        <button
+          className="attendee-back-btn"
+          onClick={onHome}
+          type="button"
+        >
+          <i className="ti ti-arrow-left" />
+          <span>Back to Farmers Pitso</span>
+        </button>
+    {/* MAIN */}
+    <main className="attendee-login">
+
+
+      {/* LEFT / LOGIN */}
+      <section className="attendee-login-panel">
+
+
+        <div className="attendee-login-heading">
+
+          <span className="attendee-eyebrow">
+            <i className="ti ti-ticket" />
+            ATTENDEE ACCESS
+          </span>
+
+          <h1>
+            Welcome to<br />
+            <em>Farmers Pitso.</em>
+          </h1>
+
+          <p>
+            Enter the ticket code from your ticket to access
+            your EventPay wallet.
+          </p>
+
         </div>
-        <button className="btn btn-primary mt" disabled={loading} onClick={handleLogin}>
-          {loading
-            ? <><i className="ti ti-loader" style={{ marginRight: '6px' }} />Checking…</>
-            : <><i className="ti ti-login" style={{ marginRight: '6px' }} />Sign In</>
-          }
-        </button>
-        <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '14px', textAlign: 'center', lineHeight: 1.6 }}>
-          <i className="ti ti-info-circle" style={{ marginRight: '4px' }} />
-          Don't have access? Please purchase a ticket first.
-        </p>
-      </div>
-      <nav className="bottom-nav">
-        <button onClick={onHome} style={{ flex: 1 }}>
-          <i className="ti ti-home nav-icon" />
-          <span>Home</span>
-        </button>
-      </nav>
-    </div>
-  );
+
+
+        <form
+          className="attendee-login-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleLogin();
+          }}
+        >
+
+          <div className="attendee-field">
+
+            <label htmlFor="ticket-code">
+              <span>
+                <i className="ti ti-ticket" />
+                Ticket Code
+              </span>
+
+              <small>
+                From your event ticket
+              </small>
+            </label>
+
+            <div className="attendee-input-wrap">
+
+              <i className="ti ti-ticket attendee-input-icon" />
+
+              <input
+                id="ticket-code"
+                type="text"
+                placeholder="e.g. ABC-1234"
+                value={ticketCode}
+                onChange={e => setTicketCode(e.target.value)}
+                autoFocus
+                autoComplete="off"
+              />
+
+            </div>
+
+          </div>
+
+
+          <button
+            className="attendee-signin-btn"
+            type="submit"
+            disabled={loading}
+          >
+
+            {loading ? (
+              <>
+                <i className="ti ti-loader attendee-spin" />
+                Checking ticket...
+              </>
+            ) : (
+              <>
+                Sign in to my wallet
+                <i className="ti ti-arrow-right" />
+              </>
+            )}
+
+          </button>
+
+        </form>
+
+
+        <div className="attendee-login-help">
+
+          <i className="ti ti-info-circle" />
+
+          <p>
+            Don't have access yet?
+            <span> Please purchase a ticket first.</span>
+          </p>
+
+        </div>
+
+      </section>
+
+
+      {/* RIGHT / EVENT CARD */}
+      <aside className="attendee-event-panel">
+
+        <div className="attendee-event-glow" />
+
+        <div className="attendee-event-content">
+
+          <span className="attendee-event-label">
+            YOUR DIGITAL WALLET
+          </span>
+
+          <div className="attendee-wallet-icon">
+            <i className="ti ti-wallet" />
+          </div>
+
+          <h2>
+            Everything you need,
+            <br />
+            <span>in one place.</span>
+          </h2>
+
+          <p>
+            Your EventPay wallet lets you enjoy Farmers Pitso
+            without carrying cash.
+          </p>
+
+
+          <div className="attendee-benefits">
+
+            <div>
+              <span className="benefit-icon">
+                <i className="ti ti-bolt" />
+              </span>
+
+              <span>
+                <strong>Fast & cashless</strong>
+                <small>Pay at participating stalls</small>
+              </span>
+            </div>
+
+
+            <div>
+              <span className="benefit-icon">
+                <i className="ti ti-qrcode" />
+              </span>
+
+              <span>
+                <strong>Your own QR wallet</strong>
+                <small>Show your QR when purchasing</small>
+              </span>
+            </div>
+
+
+            <div>
+              <span className="benefit-icon">
+                <i className="ti ti-chart-bar" />
+              </span>
+
+              <span>
+                <strong>Track your spending</strong>
+                <small>See your transaction history</small>
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div className="attendee-event-footer">
+          <i className="ti ti-map-pin" />
+          Manthabiseng Convention Centre
+        </div>
+
+      </aside>
+
+    </main>
+
+
+    {/* MOBILE / GENERAL FOOTER */}
+    <footer className="attendee-footer">
+
+
+
+      <span>
+        EventPay • Farmers Pitso 2026
+      </span>
+
+    </footer>
+
+  </div>
+);
 }
